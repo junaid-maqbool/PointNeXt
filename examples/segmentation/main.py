@@ -104,15 +104,15 @@ def main(gpu, cfg):
                 best_epoch, best_val = load_checkpoint(model, pretrained_path=cfg.pretrained_path)
                 val_miou, val_macc, val_oa, val_ious, val_accs = validate_fn(model, val_loader, cfg, num_votes=1)
                 with np.printoptions(precision=2, suppress=True):
-                    logging.info(f'Best ckpt @E{best_epoch},  val_oa , val_macc, val_miou: {oa:.2f} {macc:.2f} {miou:.2f}, '
-                                f'\niou per cls is: {ious}')
-                return miou 
+                    logging.info(f'Best ckpt @E{best_epoch},  val_oa , val_macc, val_miou: {val_oa:.2f} {val_macc:.2f} '
+                                 f'\n{val_miou:.2f}, iou per cls is: {val_ious}')
+                return val_miou
             elif cfg.mode == 'test':
                 best_epoch, best_val = load_checkpoint(model, pretrained_path=cfg.pretrained_path)
                 miou, macc, oa, ious, accs, _ = test_entire_room(model, cfg.dataset.common.test_area, cfg)
                 with np.printoptions(precision=2, suppress=True):
                     logging.info(f'Best ckpt @E{best_epoch},  test_oa , test_macc, test_miou: {oa:.2f} {macc:.2f} {miou:.2f}, '
-                                f'\niou per cls is: {ious}')
+                                 f'\niou per cls is: {ious}')
                 cfg.csv_path = os.path.join(cfg.run_dir, cfg.run_name + '_test.csv')
                 write_to_csv(oa, macc, miou, ious, best_epoch, cfg)
                 return miou 
