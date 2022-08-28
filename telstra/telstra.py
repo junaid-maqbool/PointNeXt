@@ -13,7 +13,7 @@ from ..build import DATASETS
 class TELSTRA(Dataset):
     classes = ['antenna', 'transceiver_junction', 'head_frame_mount', 'shelter', 'background']
     num_classes = 5
-    num_per_class = np.array([3370714, 2856755, 4919229, 318158, 375640], dtype=np.int32)
+    num_per_class = np.array([1, 1, 2, 3, 20], dtype=np.int32)
     class2color = {'antenna':                [0, 255, 0],
                    'transceiver_junction':   [0, 0, 255],
                    'head_frame_mount':       [0, 255, 255],
@@ -86,7 +86,8 @@ class TELSTRA(Dataset):
         cdata = np.load(data_path).astype(np.float32)
         cdata[:, :3] -= np.min(cdata[:, :3], 0)
         coord, feat, label = cdata[:, :3], cdata[:, 3:6], cdata[:, 6:7]
-        # TODO: Check training performance with random=True and False
+        # Note: random=True randomly samples voxel_max points, random=False uses random norm ball crop to select
+        # voxel_max points
         coord, feat, label = crop_pc(
             coord, feat, label, self.split, self.voxel_size, self.voxel_max,
             downsample=False, random=False, variable=self.variable)
