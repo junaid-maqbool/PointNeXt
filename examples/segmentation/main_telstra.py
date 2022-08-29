@@ -105,13 +105,14 @@ def main(gpu, cfg):
                 val_miou, val_macc, val_oa, val_ious, val_accs = validate_fn(model, val_loader, cfg, num_votes=1)
                 with np.printoptions(precision=2, suppress=True):
                     logging.info(f'Best ckpt @E{best_epoch},  val_oa , val_macc, val_miou: {val_oa:.2f} {val_macc:.2f} '
-                                 f'\n{val_miou:.2f}, iou per cls is: {val_ious}')
+                                 f'\n{val_miou:.2f}, iou per cls is: {val_ious}, acc per cls is {val_accs}')
                 return val_miou
             elif cfg.mode == 'test':
                 best_epoch, best_val = load_checkpoint(model, pretrained_path=cfg.pretrained_path)
                 miou, macc, oa, ious, accs, _ = test_entire_room(model, cfg.dataset.common.test_area, cfg)
                 with np.printoptions(precision=2, suppress=True):
-                    logging.info(f'Best ckpt @E{best_epoch},  test_oa , test_macc, test_miou: {oa:.2f} {macc:.2f} {miou:.2f}, '
+                    logging.info(f'Best ckpt @E{best_epoch},  test_oa , test_macc, test_miou: {oa:.2f} {macc:.2f} '
+                                 f'{miou:.2f}, , ious {ious}, accs: {accs}'
                                  f'\niou per cls is: {ious}')
                 cfg.csv_path = os.path.join(cfg.run_dir, cfg.run_name + '_test.csv')
                 write_to_csv(oa, macc, miou, ious, best_epoch, cfg)
@@ -163,11 +164,12 @@ def main(gpu, cfg):
                 with np.printoptions(precision=2, suppress=True):
                     logging.info(
                         f'Find a better ckpt @E{epoch}, val_miou {val_miou:.2f} val_macc {macc_when_best:.2f}, val_oa {oa_when_best:.2f}'
-                        f'\nmious: {val_ious}')
+                        f'\nmious: {val_ious}, val_ious {val_ious}, val_accs: {val_accs}')
 
         lr = optimizer.param_groups[0]['lr']
         logging.info(f'Epoch {epoch} LR {lr:.6f} '
-                     f'train_miou {train_miou:.2f}, val_miou {val_miou:.2f}, best val miou {best_val:.2f}')
+                     f'train_miou {train_miou:.2f}, val_miou {val_miou:.2f}, best val miou {best_val:.2f}, '
+                     f'val_ious {val_ious}, val_accs: {val_accs}')
         if writer is not None:
             writer.add_scalar('best_val', best_val, epoch)
             writer.add_scalar('val_miou', val_miou, epoch)
