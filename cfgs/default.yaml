@@ -47,14 +47,16 @@ test: False
 finetune: False 
 
 mode: train # set to test in evaluation only mode
-logname: null
+logname: TELSTRA
 load_path: null
-only_encoder: True # only load the encoder for finetuning
+only_encoder: False # only load the encoder for finetuning
 
 print_freq: 50 
 save_freq: -1 # saving frequency for ckpt. -1 only saving the latest and the best.
 
+visualize: True
 root_dir: log/
+#pretrained_path: /home/junaid/Desktop/workspaces/aerodyne/PointNeXt/examples/segmentation/log/telstra/telstra-train-pointnext-l-ngpus1-seed6200-20220829-215607-iv5v6rsskqjJnVALWKv9sP/checkpoint/telstra-train-pointnext-l-ngpus1-seed6200-20220829-215607-iv5v6rsskqjJnVALWKv9sP_E17.pth
 pretrained_path: null
 
 

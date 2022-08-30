@@ -14,7 +14,7 @@ model:
     width: 32
     in_channels: 4
     expansion: 4
-    radius: 0.1
+    radius: 0.3
     nsample: 32
     aggr_args:
       feature_type: 'dp_fj'
@@ -32,9 +32,9 @@ model:
     NAME: PointNextDecoder
   cls_args:
     NAME: SegHead
-    num_classes: 5
+    num_classes: 4
     in_channels: null
     norm_args:
       norm: 'bn'
 
-batch_size: 2
+batch_size: 1
