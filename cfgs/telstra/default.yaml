@@ -2,24 +2,27 @@
 dataset:
   common:
     NAME: TELSTRA
-    data_root: /home/junaid/Desktop/workspaces/aerodyne/PointNeXt/data/TELSTRA/poc
+    data_root: /home/junaid/Desktop/workspaces/aerodyne/PointNeXt/data/TELSTRA/NSW002526_pointnext_poc_single_two_patch
     test_area: 2
     voxel_size: 0.02
   train:
     split: train
-    voxel_max: 500000
+    voxel_max: 140_000
     loop: 30  # here, the training has been looped 30 times. therefore, the training epochs do not need much.
     presample: False
   val:
     split: val
-    voxel_max: null
-    presample: True 
+    voxel_max: 200_000
+    presample: True
+    variable: True
+    shuffle: False
   test:
     split: test
     voxel_max: null
-    presample: False 
+    presample: True
+    voxel_size: 0.02
 
-num_classes: 5
+num_classes: 4
 batch_size: 2
 val_batch_size: 1
 
@@ -27,7 +30,8 @@ dataloader:
   num_workers: 6
 
 datatransforms:
-  train: [ChromaticAutoContrast, PointsToTensor, PointCloudScaling, PointCloudFloorCentering, PointCloudRotation, PointCloudJitter, ChromaticDropGPU, ChromaticNormalize]
+#  train: [PointsToTensor, PointCloudScaling, PointCloudFloorCentering, PointCloudRotation, PointCloudJitter, ChromaticDropGPU, ChromaticNormalize]
+  train: [PointsToTensor, PointCloudFloorCentering, ChromaticNormalize]
   val: [PointsToTensor, PointCloudFloorCentering, ChromaticNormalize]
   vote: [ChromaticDropGPU]
   kwargs:
@@ -43,13 +47,13 @@ datatransforms:
 # ---------------------------------------------------------------------------- #
 val_fn: validate
 ignore_index: null 
-epochs: 10
+epochs: 100
 
-cls_weighed_loss: False
+cls_weighed_loss: True
 
 criterion:
   NAME: CrossEntropy
-  label_smoothing: 0.2
+  label_smoothing: 0.3
 
 optimizer:
  NAME: 'adamw'  # performs 1 point better than adam
@@ -60,7 +64,7 @@ sched: cosine
 warmup_epochs: 0
 
 min_lr: 1.0e-5 #
-lr: 0.01 # LR linear rule. 0.002 for 32 batches
+lr: 0.0005 # LR linear rule. 0.002 for 32 batches
 
 grad_norm_clip: 10
 use_voting: False

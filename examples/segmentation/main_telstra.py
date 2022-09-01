@@ -147,7 +147,7 @@ def main(gpu, cfg):
 
         is_best = False
         if epoch % cfg.val_freq == 0:
-            val_miou, val_macc, val_oa, val_ious, val_accs = validate_fn(model, train_loader, cfg)
+            val_miou, val_macc, val_oa, val_ious, val_accs = validate_fn(model, val_loader, cfg)
             if val_miou > best_val:
                 is_best = True
                 best_val = val_miou
@@ -267,7 +267,7 @@ def validate(model, val_loader, cfg, num_votes=1, data_transform=None):
         data['x'] = get_scene_seg_features(cfg.model.in_channels, data['pos'], data['x'])
         logits = model(data)
         cm.update(logits.argmax(dim=1), target)
-        pred = logits.argmax(dim=1).cpu().numpy().squeeze()
+        pred = logits.argmax(dim=1).detach().cpu().numpy().squeeze()
         pred = cfg.cmap[pred, :]
         pos = data['pos'].detach().cpu().numpy()
         write_obj(pos[0], pred, os.path.join(cfg.val_vis_dir, f'Area_{2}_{idx}.obj'))
