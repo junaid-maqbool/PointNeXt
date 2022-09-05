@@ -4,7 +4,7 @@ from tower_equipment_segmentation.util.dir_util import create_dir
 from tower_equipment_segmentation.dataset_converter.dataset_converter import DatasetConverter
 from tower_equipment_segmentation.util.dataset_util import get_site_ref_ids_in_dataset_dir, \
     get_pointnext_s3dis_pcd_npy_file_path_for_site_ref_id_and_area_idx, get_pcd_csv_file_path_for_site_ref_id
-from tower_equipment_segmentation.util.point_cloud_util import read_point_cloud_with_asset_segmentation_info_from_csv
+from tower_equipment_segmentation.dvo.point_cloud_asset_segmentation import PointCloudAssetSegmentation
 from tower_equipment_segmentation.dvo.known_class_labels import KnownClassLabels
 from tower_equipment_segmentation.util.logging_util import setup_logger
 
@@ -74,7 +74,7 @@ def _get_pointnext_input_point_clouds_from_dataset(dataset_dir: Path, voxel_max:
 def _save_logits_as_asset_seg_predictions_to_asset_seg_pcd_csv_for_site_ref_id(
         dataset_dir: Path, logits: np.ndarray, site_ref_id: str):
     pcd_asset_seg_fp = get_pcd_csv_file_path_for_site_ref_id(dataset_dir=dataset_dir, site_ref_id=site_ref_id)
-    pcd_asset_seg = read_point_cloud_with_asset_segmentation_info_from_csv(csv_file_path=pcd_asset_seg_fp)
+    pcd_asset_seg = PointCloudAssetSegmentation.from_csv_file(csv_file_path=pcd_asset_seg_fp)
     class_labels_to_confidence_scores = {KnownClassLabels.antenna: logits[0],
                                          KnownClassLabels.transceiver_junction: logits[1],
                                          KnownClassLabels.head_frame_mount: logits[2],
