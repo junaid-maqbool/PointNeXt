@@ -72,17 +72,18 @@ def _get_pointnext_input_point_clouds_from_dataset(dataset_dir: Path, voxel_max:
 
 
 def _save_logits_as_asset_seg_predictions_to_asset_seg_pcd_csv_for_site_ref_id(
-        dataset_dir: Path, logits: np.ndarray, site_ref_id: str):
+        dataset_dir: Path, logits: np.ndarray, site_ref_id: str, overwrite_existing_predictions: bool = False):
     pcd_asset_seg_fp = get_pcd_csv_file_path_for_site_ref_id(dataset_dir=dataset_dir, site_ref_id=site_ref_id)
     pcd_asset_seg = PointCloudAssetSegmentation.from_csv_file(csv_file_path=pcd_asset_seg_fp)
     class_labels_to_confidence_scores = {KnownClassLabels.antenna: logits[0],
                                          KnownClassLabels.transceiver_junction: logits[1],
                                          KnownClassLabels.head_frame_mount: logits[2],
                                          KnownClassLabels.background: logits[3]}
-    if pcd_asset_seg.class_labels_to_confidence_scores is None:
+    if pcd_asset_seg.class_labels_to_confidence_scores is None or overwrite_existing_predictions:
         pcd_asset_seg.class_labels_to_confidence_scores = class_labels_to_confidence_scores
     else:
         pcd_asset_seg.class_labels_to_confidence_scores.update(class_labels_to_confidence_scores)
+
     pcd_asset_seg.to_csv_file(pcd_asset_seg_fp)
 
 
