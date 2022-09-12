@@ -13,7 +13,10 @@ from ..build import DATASETS
 class TELSTRA(Dataset):
     classes = ['antenna', 'transceiver_junction', 'head_frame_mount', 'shelter', 'background']
     num_classes = 5
-    num_per_class = np.array([1, 1, 2, 3, 20], dtype=np.int32)
+    # num_per_class = np.array([41682, 4560, 18015, 118050, 3346605], dtype=np.int32)
+    # num_per_class = np.array([100, 30, 60, 300], dtype=np.int32)
+    num_per_class = np.array([100, 45, 65, 150, 400], dtype=np.int32)
+
     class2color = {'antenna':                [0, 255, 0],
                    'transceiver_junction':   [0, 0, 255],
                    'head_frame_mount':       [0, 255, 255],
@@ -44,7 +47,8 @@ class TELSTRA(Dataset):
                  loop: int = 1,
                  presample: bool = False,
                  variable: bool = False,
-                 n_shifted: int = 1
+                 n_shifted: int = 0,
+                 shuffle: bool = True
                  ):
 
         super().__init__()
@@ -52,6 +56,7 @@ class TELSTRA(Dataset):
             split, voxel_size, transform, voxel_max, loop
         self.presample = presample
         self.variable = variable
+        self.shuffle = shuffle
         self.n_shifted = n_shifted
 
         raw_root = os.path.join(data_root, 'raw')
@@ -88,9 +93,10 @@ class TELSTRA(Dataset):
         coord, feat, label = cdata[:, :3], cdata[:, 3:6], cdata[:, 6:7]
         # Note: random=True randomly samples voxel_max points, random=False uses random norm ball crop to select
         # voxel_max points
+        # variable=True and batch_size=1, then variable number of points are allowed
         coord, feat, label = crop_pc(
             coord, feat, label, self.split, self.voxel_size, self.voxel_max,
-            downsample=False, random=False, variable=self.variable)
+            downsample=False, random=False, variable=self.variable, shuffle=self.shuffle)
         label = label.squeeze(-1).astype(np.long)
         data = {'pos': coord, 'x': feat, 'y': label}
         # pre-process.

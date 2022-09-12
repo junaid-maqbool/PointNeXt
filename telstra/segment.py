@@ -72,13 +72,14 @@ def _get_pointnext_input_point_clouds_from_dataset(dataset_dir: Path, voxel_max:
 
 
 def _save_logits_as_asset_seg_predictions_to_asset_seg_pcd_csv_for_site_ref_id(
-        dataset_dir: Path, logits: np.ndarray, site_ref_id: str, overwrite_existing_predictions: bool = False):
+        dataset_dir: Path, logits: np.ndarray, site_ref_id: str, overwrite_existing_predictions: bool = True):
     pcd_asset_seg_fp = get_pcd_csv_file_path_for_site_ref_id(dataset_dir=dataset_dir, site_ref_id=site_ref_id)
     pcd_asset_seg = PointCloudAssetSegmentation.from_csv_file(csv_file_path=pcd_asset_seg_fp)
     class_labels_to_confidence_scores = {KnownClassLabels.antenna: logits[0],
                                          KnownClassLabels.transceiver_junction: logits[1],
                                          KnownClassLabels.head_frame_mount: logits[2],
-                                         KnownClassLabels.background: logits[3]}
+                                         KnownClassLabels.shelter: logits[3],
+                                         KnownClassLabels.background: logits[4]}
     if pcd_asset_seg.class_labels_to_confidence_scores is None or overwrite_existing_predictions:
         pcd_asset_seg.class_labels_to_confidence_scores = class_labels_to_confidence_scores
     else:
@@ -110,7 +111,6 @@ def segment_point_cloud_assets_for_point_cloud_csvs_in_dataset(
         for key in keys:
             data[key] = data[key].unsqueeze(0)
             data[key] = data[key].cuda(non_blocking=True)
-            print(data[key].shape)
         if len(data['x'].shape) > 2:
             data['x'] = data['x'].transpose(1, 2)
         if model_config.model.get('in_channels', None) is None:
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     parser.add_argument('--dataset_dir', type=Path, required=True, help='source dataset dir')
     parser.add_argument('--variable', type=bool, required=False, default=True, help='config file')
     parser.add_argument('--shuffle', type=bool, required=False, default=False, help='config file')
-    parser.add_argument('--voxel_max', type=int, required=False, default=140_000, help='config file')
+    parser.add_argument('--voxel_max', type=int, required=False, default=600_000, help='config file')
     parser.add_argument('--seed', type=int, required=False, default=1, help='random seed')
     # Loading model configs
     args, opts = parser.parse_known_args()

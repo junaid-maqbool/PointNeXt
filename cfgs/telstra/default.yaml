@@ -7,12 +7,12 @@ dataset:
     voxel_size: 0.02
   train:
     split: train
-    voxel_max: 140_000
+    voxel_max: 150_000
     loop: 30  # here, the training has been looped 30 times. therefore, the training epochs do not need much.
     presample: False
   val:
     split: val
-    voxel_max: 200_000
+    voxel_max: 300_000
     presample: True
     variable: True
     shuffle: False
@@ -22,7 +22,7 @@ dataset:
     presample: True
     voxel_size: 0.02
 
-num_classes: 4
+num_classes: 5
 batch_size: 2
 val_batch_size: 1
 
@@ -35,7 +35,7 @@ datatransforms:
   val: [PointsToTensor, PointCloudFloorCentering, ChromaticNormalize]
   vote: [ChromaticDropGPU]
   kwargs:
-    color_drop: 0.2
+    color_drop: 0.3
     gravity_dim: 2
     scale: [0.9, 1.1]
     angle: [0, 0, 1]
@@ -47,13 +47,15 @@ datatransforms:
 # ---------------------------------------------------------------------------- #
 val_fn: validate
 ignore_index: null 
-epochs: 100
+epochs: 30
 
 cls_weighed_loss: True
 
 criterion:
   NAME: CrossEntropy
   label_smoothing: 0.3
+#  NAME: FocalLoss
+#  gamma: 4.0
 
 optimizer:
  NAME: 'adamw'  # performs 1 point better than adam
