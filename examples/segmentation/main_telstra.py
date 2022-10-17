@@ -27,7 +27,8 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 def write_to_csv(oa, macc, miou, ious, best_epoch, cfg, write_header=True, area=5):
     ious_table = [f'{item:.2f}' for item in ious]
     header = ['method', 'Area', 'OA', 'mACC', 'mIoU'] + cfg.classes + ['best_epoch', 'log_path', 'wandb link']
-    data = [cfg.cfg_basename, str(area), f'{oa:.2f}', f'{macc:.2f}', f'{miou:.2f}'] + ious_table + [str(best_epoch), cfg.run_dir, wandb.run.get_url() if cfg.wandb.use_wandb else '-']
+    data = [cfg.cfg_basename, str(area), f'{oa:.2f}', f'{macc:.2f}', f'{miou:.2f}'] + ious_table + \
+           [str(best_epoch), cfg.run_dir, wandb.run.get_url() if cfg.wandb.use_wandb and wandb.run is not None else '-']
     with open(cfg.csv_path, 'a', encoding='UTF8', newline='') as f:
         writer = csv.writer(f)
         if write_header:
@@ -90,12 +91,12 @@ def main(gpu, cfg):
     cfg.classes = val_loader.dataset.classes if hasattr(val_loader.dataset, 'classes') else np.range(num_classes)
     cfg.cmap = np.array(val_loader.dataset.cmap) if hasattr(val_loader.dataset, 'cmap') else None
     validate_fn = validate if 'sphere' not in cfg.dataset.common.NAME.lower() else validate_sphere
-    
+
     # optionally resume from a checkpoint
     if cfg.pretrained_path is not None:
         if cfg.mode == 'resume':
             resume_checkpoint(cfg, model, optimizer, scheduler, pretrained_path=cfg.pretrained_path)
-            val_miou = validate_fn(val_loader, model, cfg)
+            val_miou = validate_fn(model, val_loader, cfg)
             logging.info(f'\nresume val miou is {val_miou}\n ')
         else:
             if cfg.mode == 'val':
@@ -125,12 +126,12 @@ def main(gpu, cfg):
                                              distributed=cfg.distributed,
                                              )
     logging.info(f"length of training dataset: {len(train_loader.dataset)}")
-    
-    cfg.criterion.weight = None 
+
+    cfg.criterion.weight = None
     if cfg.get('cls_weighed_loss', False):
-        if hasattr(train_loader.dataset, 'num_per_class'):    
+        if hasattr(train_loader.dataset, 'num_per_class'):
             cfg.criterion.weight = get_class_weights(train_loader.dataset.num_per_class, normalize=True)
-        else: 
+        else:
             logging.info('`num_per_class` attribute is not founded in dataset')
     criterion = build_criterion_from_cfg(cfg.criterion).cuda()
 
@@ -142,7 +143,7 @@ def main(gpu, cfg):
             train_loader.sampler.set_epoch(epoch)
         if hasattr(train_loader.dataset, 'epoch'):  # some dataset sets the dataset length as a fixed steps.
             train_loader.dataset.epoch = epoch - 1
-        train_loss, train_miou, train_macc, train_oa, _, _ = \
+        train_loss, train_miou, train_macc, train_oa, train_ious, train_accs = \
             train_one_epoch(model, train_loader, criterion, optimizer, scheduler, epoch, cfg)
 
         is_best = False
@@ -176,8 +177,13 @@ def main(gpu, cfg):
             writer.add_scalar('train_loss', train_loss, epoch)
             writer.add_scalar('train_miou', train_miou, epoch)
             writer.add_scalar('train_macc', train_macc, epoch)
+            for cls_idx, cls_iou in enumerate(train_ious):
+                writer.add_scalar(f'train_iou_{cfg.classes[cls_idx]}', cls_iou, epoch)
+            for cls_idx, cls_iou in enumerate(val_ious):
+                writer.add_scalar(f'val_iou_{cfg.classes[cls_idx]}', cls_iou, epoch)
+            for cls_idx, cls_iou in enumerate(ious_when_best):
+                writer.add_scalar(f'best_val_iou_{cfg.classes[cls_idx]}', cls_iou, epoch)
             writer.add_scalar('lr', lr, epoch)
-
         if cfg.sched_on_epoch:
             scheduler.step(epoch)
         if cfg.rank == 0:
@@ -191,7 +197,7 @@ def main(gpu, cfg):
         logging.info(
             f'Best ckpt @E{best_epoch},  val_oa {oa_when_best:.2f}, val_macc {macc_when_best:.2f}, val_miou {best_val:.2f}, '
             f'\niou per cls is: {ious_when_best}')
-    
+
     # test
     load_checkpoint(model, pretrained_path=os.path.join(cfg.ckpt_dir, f'{cfg.run_name}_ckpt_best.pth'))
     cfg.csv_path = os.path.join(cfg.run_dir, cfg.run_name + f'_area_{2}.csv')
@@ -245,7 +251,11 @@ def train_one_epoch(model, train_loader, criterion, optimizer, scheduler, epoch,
         if idx % cfg.print_freq:
             pbar.set_description(f"Train Epoch [{epoch}/{cfg.epochs}] "
                                 f"Loss {loss_meter.val:.3f} Acc {cm.overall_accuray:.2f}")
-    miou, macc, oa, ious, accs = cm.all_metrics()
+
+    tp, union, count = cm.tp, cm.union, cm.count
+    if cfg.distributed:
+        dist.all_reduce(tp), dist.all_reduce(union), dist.all_reduce(count)
+    miou, macc, oa, ious, accs = get_mious(tp, union, count)
     return loss_meter.avg, miou, macc, oa, ious, accs
 
 

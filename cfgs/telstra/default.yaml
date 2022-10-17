@@ -2,17 +2,17 @@
 dataset:
   common:
     NAME: TELSTRA
-    data_root: /home/junaid/Desktop/workspaces/aerodyne/PointNeXt/data/TELSTRA/NSW002526_pointnext_poc_single_two_patch
+    data_root: /home/deep_cog_sol/Documents/junaid/aerodyne/PointNeXt/data/TELSTRA/pointnext_poc_align_crop_3_patch_10_6
     test_area: 2
     voxel_size: 0.02
   train:
     split: train
     voxel_max: 150_000
-    loop: 30  # here, the training has been looped 30 times. therefore, the training epochs do not need much.
+    loop: 15  # here, the training has been looped 30 times. therefore, the training epochs do not need much.
     presample: False
   val:
     split: val
-    voxel_max: 300_000
+    voxel_max: 600_000
     presample: True
     variable: True
     shuffle: False
@@ -30,8 +30,8 @@ dataloader:
   num_workers: 6
 
 datatransforms:
-#  train: [PointsToTensor, PointCloudScaling, PointCloudFloorCentering, PointCloudRotation, PointCloudJitter, ChromaticDropGPU, ChromaticNormalize]
-  train: [PointsToTensor, PointCloudFloorCentering, ChromaticNormalize]
+  train: [PointsToTensor, PointCloudScaling, PointCloudFloorCentering, PointCloudRotation, PointCloudJitter, ChromaticDropGPU, ChromaticNormalize]
+#  train: [PointsToTensor, PointCloudFloorCentering, ChromaticNormalize]
   val: [PointsToTensor, PointCloudFloorCentering, ChromaticNormalize]
   vote: [ChromaticDropGPU]
   kwargs:
@@ -47,7 +47,7 @@ datatransforms:
 # ---------------------------------------------------------------------------- #
 val_fn: validate
 ignore_index: null 
-epochs: 30
+epochs: 75
 
 cls_weighed_loss: True
 
@@ -66,7 +66,7 @@ sched: cosine
 warmup_epochs: 0
 
 min_lr: 1.0e-5 #
-lr: 0.0005 # LR linear rule. 0.002 for 32 batches
+lr: 0.001 # LR linear rule. 0.002 for 32 batches
 
 grad_norm_clip: 10
 use_voting: False

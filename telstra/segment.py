@@ -80,10 +80,10 @@ def _save_logits_as_asset_seg_predictions_to_asset_seg_pcd_csv_for_site_ref_id(
                                          KnownClassLabels.head_frame_mount: logits[2],
                                          KnownClassLabels.shelter: logits[3],
                                          KnownClassLabels.background: logits[4]}
-    if pcd_asset_seg.class_labels_to_confidence_scores is None or overwrite_existing_predictions:
-        pcd_asset_seg.class_labels_to_confidence_scores = class_labels_to_confidence_scores
+    if pcd_asset_seg.class_labels_to_conf_scores is None or overwrite_existing_predictions:
+        pcd_asset_seg.class_labels_to_conf_scores = class_labels_to_confidence_scores
     else:
-        pcd_asset_seg.class_labels_to_confidence_scores.update(class_labels_to_confidence_scores)
+        pcd_asset_seg.class_labels_to_conf_scores.update(class_labels_to_confidence_scores)
 
     pcd_asset_seg.to_csv_file(pcd_asset_seg_fp)
 
@@ -98,7 +98,7 @@ def segment_point_cloud_assets_for_point_cloud_csvs_in_dataset(
 
     # Convert pcd asset seg csvs to pointnext s3dis format
     tmp_dataset_dir = Path('tmp/pointnext_dataset')
-    create_dir(tmp_dataset_dir)
+    create_dir(tmp_dataset_dir, delete_if_existing=True)
     converter = DatasetConverter()
     converter.convert_tower_asset_segmentation_dataset_to_pointnext_s3dis_format(
         src_dataset_dir=dataset_dir, dst_dataset_dir=tmp_dataset_dir,

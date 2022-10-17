@@ -2,7 +2,7 @@
 dist_url: tcp://localhost:8888
 dist_backend: 'nccl'
 multiprocessing_distributed: False
-ngpus_per_node: 1
+ngpus_per_node: 2 # Number of gpus on system
 world_size: 1
 launcher: 'mp'
 local_rank: 0
@@ -56,7 +56,7 @@ save_freq: -1 # saving frequency for ckpt. -1 only saving the latest and the bes
 
 visualize: True
 root_dir: log/
-#pretrained_path: /home/junaid/Desktop/workspaces/aerodyne/PointNeXt/examples/segmentation/log/telstra/telstra-train-pointnext-l-ngpus1-seed6200-20220829-215607-iv5v6rsskqjJnVALWKv9sP/checkpoint/telstra-train-pointnext-l-ngpus1-seed6200-20220829-215607-iv5v6rsskqjJnVALWKv9sP_E17.pth
+#pretrained_path: /home/deep_cog_sol/Documents/junaid/aerodyne/PointNeXt/examples/segmentation/log/telstra/telstra-train-pointnext-b-ngpus2-seed9045-20220930-100112-4MTUD7FTR5sg5EFGcxqUkA/checkpoint/telstra-train-pointnext-b-ngpus2-seed9045-20220930-100112-4MTUD7FTR5sg5EFGcxqUkA_ckpt_best.pth
 pretrained_path: null
 
 
